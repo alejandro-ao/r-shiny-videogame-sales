@@ -62,12 +62,6 @@ server<-function (input,output){
                      "Rest of the world Sales" = vgsales$Other_Sales
                      )
     
-    # x_plot <- with(vgsales, 
-    #                reorder(x_axis, 
-    #                        y_axis, 
-    #                        median)
-    #                )
-    
     ggplot(vgsales, 
            aes(
              x= reorder(x_axis, 
