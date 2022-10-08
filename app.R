@@ -62,15 +62,34 @@ server<-function (input,output){
                      "Rest of the world Sales" = vgsales$Other_Sales
                      )
     
-    ggplot(vgsales, 
+    # reorder based on median
+    # Platform_ordered <- with(vgsales,
+    #                    reorder(Platform,
+    #                            NA_Sales,
+    #                            median))
+    # 
+    # reordered_vgsales <- vgsales
+    # reordered_vgsales$Platform <- factor(reordered_vgsales$Platform,
+    #                                      levels = levels(Platform_ordered))
+    # 
+    # ggplot(reordered_vgsales,
+    #        aes(
+    #          x= Platform,
+    #          y=NA_Sales)) +
+    #   geom_boxplot() +
+    #   scale_y_log10() +
+    #   theme(axis.text.x = element_text(angle = 90))
+
+    
+    ggplot(vgsales,
            aes(
-             x= reorder(x_axis, 
-                        y_axis, 
+             x= reorder(x_axis,
+                        y_axis,
                         median),
              # x=x_axis,
-             y=y_axis)) + 
-      geom_boxplot() + 
-      scale_y_log10() + 
+             y=y_axis)) +
+      geom_boxplot() +
+      scale_y_log10() +
       theme(axis.text.x = element_text(angle = 90))
   })
 }
