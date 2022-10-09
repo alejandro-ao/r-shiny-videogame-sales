@@ -27,7 +27,7 @@ get_top_publishers <- function(vgsales) {
   Publisher_Sales <- merge(merge(merge(P_NA_Sales,P_EU_Sales, 'Publisher'), P_JP_Sales, 'Publisher'), P_Other_Sales, 'Publisher')
   
   
-  colnames(Publisher_Sales)[2] ="North America"
+  colnames(Publisher_Sales)[2] ="North.America"
   colnames(Publisher_Sales)[3] ="Europe"
   colnames(Publisher_Sales)[4] ="Japan"
   colnames(Publisher_Sales)[5] ="Other"
@@ -50,7 +50,7 @@ top_10_publishers <- get_top_publishers(vgsales)
 ui <- fluidPage(
   
   # Application title
-  titlePanel("Videogame Sales"),
+  titlePanel("Videogame sales visualisation dashboard"),
   
   # PANEL 1
   sidebarLayout(
@@ -82,12 +82,12 @@ ui <- fluidPage(
     sidebarPanel(
       helpText("Here you can visualize the total sales by the 10 best performing platforms by region."),
       helpText("Please select the region that you want to visualize"),
-      selectInput('a',label="Select a publisher", c(
+      selectInput('plot2_region',label="Select a publisher", c(
+        "Global",
         "North America",
         "Europe",
         "Japan",
-        "Other",
-        "Global"
+        "Other"
         # "Nintendo",
         # "Electronic Arts",
         # "Activision",
@@ -144,11 +144,19 @@ server<-function (input,output){
   })
   output$platformSalesPlot <- renderPlot({
     
+    y_axis <- switch (input$plot2_region,
+                      "North America" = top_10_publishers$North.America,
+                      "Europe" = top_10_publishers$Europe,
+                      "Japan" = top_10_publishers$Japan,
+                      "Other" = top_10_publishers$Other,
+                      "Global" = top_10_publishers$Global
+                      )
+    
     ggplot(top_10_publishers, 
-           aes(x=reorder(Publisher, Europe, max), y=Europe)) +
+           aes(x=reorder(Publisher, y_axis, max), y=y_axis)) +
       geom_bar(width = 1, stat = "identity", color="white", fill="#47B5FF", alpha=0.5) +
       xlab("Publisher") +
-      ylab("Total sales in Europe (in Millions)")
+      ylab(paste("Total sales in", input$plot2_region,"(in Millions)"))
       
   })
 }
