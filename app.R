@@ -11,7 +11,7 @@ top_10_publishers <- get_top_publishers(vgsales)
 ui <- fluidPage(
 
   # Application title
-  titlePanel("Video games sales visualisation dashboard"),
+  titlePanel("Video game sales visualisation dashboard"),
 
   # PANEL 1
   sidebarLayout(
