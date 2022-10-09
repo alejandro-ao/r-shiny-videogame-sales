@@ -1,12 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(ggplot2)
 
@@ -21,18 +12,18 @@ ui <- fluidPage(
   # Sidebar with a slider input for number of bins 
   sidebarLayout(
     sidebarPanel(
-      #selectInput('x',"Genre",vgsales$Genre),
-      selectInput('x_axis',label="X Axis", c(
+      helpText("Please select the data that you would like to visualize."),
+      selectInput('x_axis',label="Sales by", c(
         "Platform",
-        "Publishers (top 20)",
+        # "Publishers (top 20)",
         "Genre"
       )),
-      selectInput('y_axis',label="Y axis", c(
-        "Global Sales",
-        "NA Sales",
-        "Europe Sales",
-        "Japan Sales",
-        "Rest of the world Sales"
+      selectInput('y_axis',label="Select a region", c(
+        "Global",
+        "North America",
+        "Europe",
+        "Japan",
+        "Rest of the world"
       )),
     ),
     
@@ -52,43 +43,27 @@ server<-function (input,output){
     x_axis <- switch(input$x_axis,
                      "Platform" = vgsales$Platform,
                      "Genre" = vgsales$Genre,
-                     "Publishers (top 20)" = vgsales$Publisher
+                     # "Publishers (top 20)" = vgsales$Publisher
                      )
     y_axis <- switch(input$y_axis,
-                     "Global Sales" = vgsales$Global_Sales,
-                     "NA Sales" = vgsales$NA_Sales,
-                     "Europe Sales" = vgsales$EU_Sales,
-                     "Japan Sales" = vgsales$JP_Sales,
-                     "Rest of the world Sales" = vgsales$Other_Sales
+                     "Global" = vgsales$Global_Sales,
+                     "North America" = vgsales$NA_Sales,
+                     "Europe" = vgsales$EU_Sales,
+                     "Japan" = vgsales$JP_Sales,
+                     "Rest of the world" = vgsales$Other_Sales
                      )
-    
-    # reorder based on median
-    # Platform_ordered <- with(vgsales,
-    #                    reorder(Platform,
-    #                            NA_Sales,
-    #                            median))
-    # 
-    # reordered_vgsales <- vgsales
-    # reordered_vgsales$Platform <- factor(reordered_vgsales$Platform,
-    #                                      levels = levels(Platform_ordered))
-    # 
-    # ggplot(reordered_vgsales,
-    #        aes(
-    #          x= Platform,
-    #          y=NA_Sales)) +
-    #   geom_boxplot() +
-    #   scale_y_log10() +
-    #   theme(axis.text.x = element_text(angle = 90))
-
+    plot_title <- paste(input$y_axis, "Sales by", input$x_axis)
     
     ggplot(vgsales,
            aes(
              x= reorder(x_axis,
                         y_axis,
                         median),
-             # x=x_axis,
              y=y_axis)) +
       geom_boxplot() +
+      labs(title=plot_title) +
+      xlab(input$x_axis) + 
+      ylab(paste(input$y_axis, "sales (in millions)")) +
       scale_y_log10() +
       theme(axis.text.x = element_text(angle = 90))
   })

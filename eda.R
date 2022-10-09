@@ -2,17 +2,12 @@ library(ggplot2)
 
 vgsales <- read.csv("./data/vgsales.csv")
 
-wii_sales <- vgsales[vgsales$Platform == "Wii",]
-pc_sales <- vgsales[vgsales$Platform == "PC",]
-ng_sales <- vgsales[vgsales$Platform == "NG",]
-nes_sales <- vgsales[vgsales$Platform == "NES",]
-psp_sales <- vgsales[vgsales$Platform == "PSP",]
-
-
 Platform_ordered <- with(vgsales,
                    reorder(Platform,
                            NA_Sales,
-                           median))
+                           sum))
+
+ggplot(Platform_ordered, aes(x=Platform, y=Global_sales)) + geom_bar()
 
 # reordered_vgsales <- vgsales
 # reordered_vgsales$Platform <- factor(reordered_vgsales$Platform,
@@ -62,11 +57,42 @@ ggplot(ps4_sales,
   theme(axis.text.x = element_text(angle = 90))
 
 # table of all platforms by median sales in NA_Sales
-library(dplyr)
-grouped_platforms <- group_by(vgsales, Platform)
-summarise(grouped_platforms, median_sales = median(NA_Sales))
 
 
+### 5. Create dataframe of the sales of top 10 publishers around the world
+library(data.table)
+vgsales <- data.table(vgsales)
 
-# data.frame("Platform"=unique(vgsales$Platform), "Sales in NA"=
+P_NA_Sales <- vgsales[, sum(NA_Sales), by = Publisher][order(-V1),]
+TOP10_NA <- P_NA_Sales[1:10]
+
+P_EU_Sales <- vgsales[, sum(EU_Sales), by = Publisher][order(-V1),]
+TOP10_EU <- P_EU_Sales[1:10]
+
+P_JP_Sales <- vgsales[, sum(JP_Sales), by = Publisher][order(-V1),]
+TOP10_JP <- P_JP_Sales[1:10]
+
+P_Other_Sales <- vgsales[, sum(Other_Sales), by = Publisher][order(-V1),]
+TOP10_Other <- P_Other_Sales[1:10]
+
+P_Global_Sales <- vgsales[, sum(Global_Sales), by = Publisher][order(-V1),]
+TOP10_Global <- P_Global_Sales[1:10]
+
+
+Publisher_Sales <- merge(merge(merge(P_NA_Sales,P_EU_Sales, 'Publisher'), P_JP_Sales, 'Publisher'), P_Other_Sales, 'Publisher')
+
+
+colnames(Publisher_Sales)[2] ="North America"
+colnames(Publisher_Sales)[3] ="Europe"
+colnames(Publisher_Sales)[4] ="Japan"
+colnames(Publisher_Sales)[5] ="Other"
+
+Publisher_Sales <- merge(Publisher_Sales, P_Global_Sales, 'Publisher')[order(-V1),]
+colnames(Publisher_Sales)[6] = "Global"
+
+TOP_10_Publisher_Global_Sales <- Publisher_Sales[1:10]
+
+ggplot(TOP_10_Publisher_Global_Sales, 
+  aes(x=reorder(Publisher,Global,max), y=Global, fill=Other)) +
+  geom_bar(width = 1, stat = "identity")
 
