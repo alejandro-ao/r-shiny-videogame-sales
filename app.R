@@ -35,7 +35,14 @@ get_top_publishers <- function(vgsales) {
   Publisher_Sales <- merge(Publisher_Sales, P_Global_Sales, 'Publisher')[order(-V1),]
   colnames(Publisher_Sales)[6] = "Global"
   
-  return(Publisher_Sales[1:10])
+  top_10_publishers <- Publisher_Sales[1:10]
+  # transposed_top_10 <- t(top_10_publishers)
+  # 
+  # colnames(transposed_top_10) <- transposed_top_10[1,]
+  # top_10_publishers <- transposed_top_10[-1, ]
+  
+  return(data.frame(top_10_publishers))
+  
 }
 top_10_publishers <- get_top_publishers(vgsales)
 
@@ -45,9 +52,8 @@ ui <- fluidPage(
   # Application title
   titlePanel("Videogame Sales"),
   
-  # Sidebar with inputs 
+  # PANEL 1
   sidebarLayout(
-    
     sidebarPanel(
       helpText("Here you can visualize the sales of the highest grossing videogames released in the world. Every dot in the plot represents one videogame."),
       helpText("Please select the data that you would like to visualize."),
@@ -71,24 +77,28 @@ ui <- fluidPage(
     )
   ),
   
-  
+  # PANEL 2
   sidebarLayout(
     sidebarPanel(
-      helpText("Here you can visualize the total sales by the best performing platforms by region."),
-      helpText("Please select the data that you would like to visualize."),
-      selectInput('a',label="Select a platform", c(
-        "Nintendo",
-        "Electronic Arts"
-      )),
-      selectInput('s',label="Select a region", c(
-        "Global",
+      helpText("Here you can visualize the total sales by the 10 best performing platforms by region."),
+      helpText("Please select the region that you want to visualize"),
+      selectInput('a',label="Select a publisher", c(
         "North America",
         "Europe",
         "Japan",
-        "Rest of the world"
+        "Other",
+        "Global"
+        # "Nintendo",
+        # "Electronic Arts",
+        # "Activision",
+        # "Sony Computer Entertainment",
+        # "Ubisoft",
+        # "Take-Two Interactive",
+        # "THQ",
+        # "Konami Digital Entertainment",
+        # "Sega",
+        # "Namco Bandai Games"
       )),
-      checkboxInput("ss", label="See log scale", value=TRUE)
-      
     ),
     mainPanel(
       plotOutput("platformSalesPlot")
@@ -120,7 +130,7 @@ server<-function (input,output){
                         median),
              y=y_axis)) +
       geom_boxplot(color="#47B5FF", fill="white", alpha=0.4) +
-      labs(title=plot_title) +
+      # labs(title=plot_title) +
       xlab(input$x_axis) + 
       ylab(paste(input$y_axis, "sales (in millions)")) +
       theme(axis.text.x = element_text(angle = 90))
@@ -133,9 +143,13 @@ server<-function (input,output){
     
   })
   output$platformSalesPlot <- renderPlot({
+    
     ggplot(top_10_publishers, 
-           aes(x=reorder(Publisher,Global,max), y=Global)) +
-      geom_bar(width = 1, stat = "identity", color="white", fill="#47B5FF", alpha=0.5)
+           aes(x=reorder(Publisher, Europe, max), y=Europe)) +
+      geom_bar(width = 1, stat = "identity", color="white", fill="#47B5FF", alpha=0.5) +
+      xlab("Publisher") +
+      ylab("Total sales in Europe (in Millions)")
+      
   })
 }
 

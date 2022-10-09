@@ -62,8 +62,6 @@ ggplot(ps4_sales,
 ### 5. Create dataframe of the sales of top 10 publishers around the world
 
 get_top_publishers <- function() {
-  vgsales <- read.csv("./data/vgsales.csv")
-  library(data.table)
   vgsales_table <- data.table(vgsales)
   
   P_NA_Sales <- vgsales_table[, sum(NA_Sales), by = Publisher][order(-V1),]
@@ -93,7 +91,12 @@ get_top_publishers <- function() {
   Publisher_Sales <- merge(Publisher_Sales, P_Global_Sales, 'Publisher')[order(-V1),]
   colnames(Publisher_Sales)[6] = "Global"
   
-  return(Publisher_Sales[1:10])
+  top_10_publishers <- Publisher_Sales[1:10]
+  transposed_top_10 <- t(top_10_publishers)
+  names(transposed_top_10) <- transposed_top_10[1,]
+  publishers_sales <- transposed_top_10[-1,]
+  
+  return(publishers_sales)
 }
 top10 <- get_top_publishers()
 View(top10)
