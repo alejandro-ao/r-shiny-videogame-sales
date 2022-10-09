@@ -1,21 +1,58 @@
 library(shiny)
 library(ggplot2)
+library(data.table)
 
 vgsales <- read.csv("./data/vgsales.csv")
 
-# Define UI for application that draws a histogram
+
+get_top_publishers <- function(vgsales) {
+  vgsales_table <- data.table(vgsales)
+  
+  P_NA_Sales <- vgsales_table[, sum(NA_Sales), by = Publisher][order(-V1),]
+  TOP10_NA <- P_NA_Sales[1:10]
+  
+  P_EU_Sales <- vgsales_table[, sum(EU_Sales), by = Publisher][order(-V1),]
+  TOP10_EU <- P_EU_Sales[1:10]
+  
+  P_JP_Sales <- vgsales_table[, sum(JP_Sales), by = Publisher][order(-V1),]
+  TOP10_JP <- P_JP_Sales[1:10]
+  
+  P_Other_Sales <- vgsales_table[, sum(Other_Sales), by = Publisher][order(-V1),]
+  TOP10_Other <- P_Other_Sales[1:10]
+  
+  P_Global_Sales <- vgsales_table[, sum(Global_Sales), by = Publisher][order(-V1),]
+  TOP10_Global <- P_Global_Sales[1:10]
+  
+  
+  Publisher_Sales <- merge(merge(merge(P_NA_Sales,P_EU_Sales, 'Publisher'), P_JP_Sales, 'Publisher'), P_Other_Sales, 'Publisher')
+  
+  
+  colnames(Publisher_Sales)[2] ="North America"
+  colnames(Publisher_Sales)[3] ="Europe"
+  colnames(Publisher_Sales)[4] ="Japan"
+  colnames(Publisher_Sales)[5] ="Other"
+  
+  Publisher_Sales <- merge(Publisher_Sales, P_Global_Sales, 'Publisher')[order(-V1),]
+  colnames(Publisher_Sales)[6] = "Global"
+  
+  return(Publisher_Sales[1:10])
+}
+top_10_publishers <- get_top_publishers(vgsales)
+
+# Define UI for application
 ui <- fluidPage(
   
   # Application title
   titlePanel("Videogame Sales"),
   
-  # Sidebar with a slider input for number of bins 
+  # Sidebar with inputs 
   sidebarLayout(
+    
     sidebarPanel(
+      helpText("Here you can visualize the sales of the highest grossing videogames released in the world. Every dot in the plot represents one videogame."),
       helpText("Please select the data that you would like to visualize."),
       selectInput('x_axis',label="Sales by", c(
         "Platform",
-        # "Publishers (top 20)",
         "Genre"
       )),
       selectInput('y_axis',label="Select a region", c(
@@ -30,21 +67,42 @@ ui <- fluidPage(
     
     # Show a plot of the generated distribution
     mainPanel(
-      plotOutput("distPlot")
+      plotOutput("vgsalesPlot")
+    )
+  ),
+  
+  
+  sidebarLayout(
+    sidebarPanel(
+      helpText("Here you can visualize the total sales by the best performing platforms by region."),
+      helpText("Please select the data that you would like to visualize."),
+      selectInput('a',label="Select a platform", c(
+        "Nintendo",
+        "Electronic Arts"
+      )),
+      selectInput('s',label="Select a region", c(
+        "Global",
+        "North America",
+        "Europe",
+        "Japan",
+        "Rest of the world"
+      )),
+      checkboxInput("ss", label="See log scale", value=TRUE)
+      
+    ),
+    mainPanel(
+      plotOutput("platformSalesPlot")
     )
   )
 )
 
 #Define server logic
 server<-function (input,output){
-  
-  output$distPlot <- renderPlot({
-
+  output$vgsalesPlot <- renderPlot({
 
     x_axis <- switch(input$x_axis,
                      "Platform" = vgsales$Platform,
                      "Genre" = vgsales$Genre,
-                     # "Publishers (top 20)" = vgsales$Publisher
                      )
     y_axis <- switch(input$y_axis,
                      "Global" = vgsales$Global_Sales,
@@ -73,6 +131,11 @@ server<-function (input,output){
       p
     }
     
+  })
+  output$platformSalesPlot <- renderPlot({
+    ggplot(top_10_publishers, 
+           aes(x=reorder(Publisher,Global,max), y=Global)) +
+      geom_bar(width = 1, stat = "identity", color="white", fill="#47B5FF", alpha=0.5)
   })
 }
 
