@@ -55,7 +55,8 @@ ui <- fluidPage(
   # PANEL 1
   sidebarLayout(
     sidebarPanel(
-      helpText("Here you can visualize the sales of the highest grossing videogames released in the world. Every dot in the plot represents one videogame."),
+      h4("Units sold"),
+      helpText("Here you can visualize the sales of the highest grossing videogames released worldwide. Every dot in the plot represents one videogame."),
       helpText("Please select the data that you would like to visualize."),
       selectInput('x_axis',label="Sales by", c(
         "Platform",
@@ -80,9 +81,10 @@ ui <- fluidPage(
   # PANEL 2
   sidebarLayout(
     sidebarPanel(
-      helpText("Here you can visualize the total sales by the 10 best performing platforms by region."),
+      h4("Top publishers"),
+      helpText("Here you can visualize the total sales of the 10 best performing platforms by region."),
       helpText("Please select the region that you want to visualize"),
-      selectInput('plot2_region',label="Select a publisher", c(
+      selectInput('plot2_region',label="Select a region", c(
         "Global",
         "North America",
         "Europe",
