@@ -88,16 +88,6 @@ ui <- fluidPage(
         "Europe",
         "Japan",
         "Other"
-        # "Nintendo",
-        # "Electronic Arts",
-        # "Activision",
-        # "Sony Computer Entertainment",
-        # "Ubisoft",
-        # "Take-Two Interactive",
-        # "THQ",
-        # "Konami Digital Entertainment",
-        # "Sega",
-        # "Namco Bandai Games"
       )),
     ),
     mainPanel(
@@ -156,8 +146,8 @@ server<-function (input,output){
            aes(x=reorder(Publisher, y_axis, max), y=y_axis)) +
       geom_bar(width = 1, stat = "identity", color="white", fill="#47B5FF", alpha=0.5) +
       xlab("Publisher") +
-      ylab(paste("Total sales in", input$plot2_region,"(in Millions)"))
-      
+      ylab(paste("Total sales in", input$plot2_region,"(in Millions)")) +
+      scale_x_discrete(guide = guide_axis(n.dodge=3))
   })
 }
 
