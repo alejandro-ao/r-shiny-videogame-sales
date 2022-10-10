@@ -1,3 +1,9 @@
+###### TEAM MEMBERS
+# - David ROJAS
+# - Julien BOUHELIER
+# - Marc PEZERIL
+# - Alejandro AVILA-ORTIZ
+
 library(shiny)
 library(ggplot2)
 library(data.table)
@@ -12,7 +18,10 @@ Genre_Sales <- get_top_genres(vgsales)
 ui <- fluidPage(
   
   # Application title
-  titlePanel("Video game sales visualisation dashboard"),
+  titlePanel(h1("Video game sales visualization dashboard", align="center")),
+  p("The goal of the of Video Games Sales Visualization Dashboard is to provide an overview of the sales by platform, gender or Publisher across different parts of the world.", align="center"),
+  br(),
+  
   
   # PANEL 1
   sidebarLayout(
