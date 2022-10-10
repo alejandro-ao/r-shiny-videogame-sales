@@ -37,3 +37,25 @@ get_top_publishers <- function(vgsales) {
 
     return(data.frame(top_10_publishers))
 }
+
+get_top_genres <- function(vgsales) {
+  vgsales_table <- data.table(vgsales)
+  
+  G_NA_Sales <- vgsales_table[, sum(NA_Sales), by = Genre]
+  G_EU_Sales <- vgsales_table[, sum(EU_Sales), by = Genre]
+  G_JP_Sales <- vgsales_table[, sum(JP_Sales), by = Genre]
+  G_Other_Sales <- vgsales_table[, sum(Other_Sales), by = Genre]
+  G_Global_Sales <- vgsales_table[, sum(Global_Sales), by = Genre]
+  
+  Genre_Sales <- merge(merge(merge(G_NA_Sales,G_EU_Sales, 'Genre'), 
+                             G_JP_Sales, 'Genre'), G_Other_Sales, 'Genre')
+  colnames(Genre_Sales)[2] ="North.America"
+  colnames(Genre_Sales)[3] ="Europe"
+  colnames(Genre_Sales)[4] ="Japan"
+  colnames(Genre_Sales)[5] ="Other"
+  
+  Genre_Sales <- merge(Genre_Sales, G_Global_Sales, 'Genre')[order(-V1),]
+  colnames(Genre_Sales)[6] = "Global"
+  
+  return(Genre_Sales)
+}

@@ -6,22 +6,24 @@ source("./helpers.R")
 vgsales <- read.csv("./data/vgsales.csv")
 
 top_10_publishers <- get_top_publishers(vgsales)
+Genre_Sales <- get_top_genres(vgsales)
 
 # Define UI for application
 ui <- fluidPage(
-
+  
   # Application title
   titlePanel("Video game sales visualisation dashboard"),
-
+  
   # PANEL 1
   sidebarLayout(
     sidebarPanel(
       h4("Units sold"),
       helpText("Here you can visualize the sales of the highest grossing videogames released worldwide. Every dot in the plot represents one videogame."),
       helpText("Please select the data that you would like to visualize."),
-      selectInput("x_axis", label = "Sales by", c(
-        "Platform",
-        "Genre"
+      selectInput("table", "Which question do you want to answer?", c(
+        "What type of film was sold the most?",
+        "which platform is the most successfull?",
+        "Which publisher made the most money?"
       )),
       selectInput("y_axis", label = "Select a region", c(
         "Global",
@@ -32,29 +34,10 @@ ui <- fluidPage(
       )),
       checkboxInput("enable_log_scale", label = "See log scale", value = TRUE)
     ),
-
+    
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("vgsalesPlot")
-    )
-  ),
-
-  # PANEL 2
-  sidebarLayout(
-    sidebarPanel(
-      h4("Top publishers"),
-      helpText("Here you can visualize the total sales of the 10 best performing platforms by region."),
-      helpText("Please select the region that you want to visualize"),
-      selectInput("plot2_region", label = "Select a region", c(
-        "Global",
-        "North America",
-        "Europe",
-        "Japan",
-        "Other"
-      )),
-    ),
-    mainPanel(
-      plotOutput("platformSalesPlot")
     )
   )
 )
@@ -62,59 +45,81 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output) {
   output$vgsalesPlot <- renderPlot({
-    x_axis <- switch(input$x_axis,
-      "Platform" = vgsales$Platform,
-      "Genre" = vgsales$Genre,
-    )
-    y_axis <- switch(input$y_axis,
-      "Global" = vgsales$Global_Sales,
-      "North America" = vgsales$NA_Sales,
-      "Europe" = vgsales$EU_Sales,
-      "Japan" = vgsales$JP_Sales,
-      "Rest of the world" = vgsales$Other_Sales
-    )
+    # PLOT TITLE
     plot_title <- paste(input$y_axis, "Videogame Sales by", input$x_axis)
-
-    p <- ggplot(
+    
+    y_axis_top_10 <- switch(input$y_axis,
+                            "Global" = top_10_publishers$Global,
+                            "North America" = top_10_publishers$North.America,
+                            "Europe" = top_10_publishers$Europe,
+                            "Japan" = top_10_publishers$Japan,
+                            "Rest of the world" = top_10_publishers$Other
+    )
+    
+    y_axis_vgsales <- switch(input$y_axis,
+                             "Global" = vgsales$Global_Sales,
+                             "North America" = vgsales$NA_Sales,
+                             "Europe" = vgsales$EU_Sales,
+                             "Japan" = vgsales$JP_Sales,
+                             "Rest of the world" = vgsales$Other_Sales
+    )
+    
+    y_axis_genre_sales <- switch(input$y_axis,
+                                 "Global" = Genre_Sales$Global,
+                                 "North America" = Genre_Sales$North.America,
+                                 "Europe" = Genre_Sales$Europe,
+                                 "Japan" = Genre_Sales$Japan,
+                                 "Rest of the world" = Genre_Sales$Other
+    )
+    
+    # PLATFORM PLOT
+    platformPlot <- ggplot(
       vgsales,
       aes(
-        x = reorder(
-          x_axis,
-          y_axis,
-          median
-        ),
-        y = y_axis
+        x = reorder(vgsales$Platform, y_axis_vgsales, median),
+        y = y_axis_vgsales
       )
     ) +
       geom_boxplot(color = "#47B5FF", fill = "white", alpha = 0.4) +
-      # labs(title=plot_title) +
-      xlab(input$x_axis) +
+      xlab("Platform") +
       ylab(paste(input$y_axis, "sales (in millions)")) +
       theme(axis.text.x = element_text(angle = 90))
-
     if (input$enable_log_scale) {
-      p + scale_y_log10()
-    } else {
-      p
+      platformPlot <- platformPlot + scale_y_log10()
     }
-  })
-  output$platformSalesPlot <- renderPlot({
-    y_axis <- switch(input$plot2_region,
-      "North America" = top_10_publishers$North.America,
-      "Europe" = top_10_publishers$Europe,
-      "Japan" = top_10_publishers$Japan,
-      "Other" = top_10_publishers$Other,
-      "Global" = top_10_publishers$Global
-    )
-
-    ggplot(
+    
+    # GENRE PLOT
+    genrePlot <- ggplot(
+      Genre_Sales,
+      aes(
+        x = reorder(Genre, y_axis_genre_sales, max),
+        y = y_axis_genre_sales
+      )
+    ) +
+      geom_bar(width = 1, stat = "identity", color = "white", fill = "#47B5FF", alpha = 0.4) +
+      xlab("Genres") +
+      ylab(paste("Total sales in", input$y_axis, "(in millions)"))
+      
+    
+    
+    # PUBLISHER PLOT
+    publisherPlot <- ggplot(
       top_10_publishers,
-      aes(x = reorder(Publisher, y_axis, max), y = y_axis)
+      aes(x = reorder(top_10_publishers$Publisher, y_axis_top_10, max), y = y_axis_top_10)
     ) +
       geom_bar(width = 1, stat = "identity", color = "white", fill = "#47B5FF", alpha = 0.5) +
       xlab("Publisher") +
-      ylab(paste("Total sales in", input$plot2_region, "(in millions)")) +
+      ylab(paste("Total sales in", input$y_axis, "(in millions)")) +
       scale_x_discrete(guide = guide_axis(n.dodge = 3))
+    
+    output_result <- switch(input$table,
+                            "which platform is the most successfull?" = platformPlot,
+                            "Which publisher made the most money?" = publisherPlot,
+                            "What type of film was sold the most?" = genrePlot
+    )
+    
+    # SHOW RESULT
+    output_result
   })
 }
 
